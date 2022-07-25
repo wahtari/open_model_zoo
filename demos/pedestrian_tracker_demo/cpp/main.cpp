@@ -48,7 +48,7 @@
 #include "utils.hpp"
 
 #include <ncam/MJPEGStreamer.hpp>
-#include <ncam/BufferedChannel.hpp>
+//#include <ncam/BufferedChannel.hpp>
 #include <ncam/Camera.hpp>
 
 using cv::Mat;
@@ -203,7 +203,7 @@ int main(int argc, char** argv) {
         //                      FLAGS_first,
         //                      FLAGS_read_limit);
 
-        //double video_fps = cam.fps();
+        double video_fps = 60; 
         //if (0.0 == video_fps) {
             // the default frame rate for DukeMTMC dataset
         //    video_fps = 60.0;
@@ -221,16 +221,14 @@ int main(int argc, char** argv) {
 
         auto startTime = std::chrono::steady_clock::now();
         cv::Mat frame;
-        cv::Size firstFrameSize = frame.size();
         if (!cam.read(frame)) {
             return 1;
         }
-
-        /*
-        LazyVideoWriter videoWriter{FLAGS_o, cam.fps(), FLAGS_limit};
+        cv::Size firstFrameSize = frame.size();
+        
+        //LazyVideoWriter videoWriter{FLAGS_o, cam.fps(), FLAGS_limit};
         cv::Size graphSize{static_cast<int>(frame.cols / 4), 60};
         Presenter presenter(FLAGS_u, 10, graphSize);
-        */
 
         // Our motion jpeg server.
         ncam::MJPEGStreamer streamer;
@@ -291,8 +289,8 @@ int main(int argc, char** argv) {
             }
 
             // timestamp in milliseconds
-            //uint64_t cur_timestamp = static_cast<uint64_t>(1000.0 / video_fps * frameIdx);
-            //tracker->Process(frame, detections, cur_timestamp);
+            uint64_t cur_timestamp = static_cast<uint64_t>(1000.0 / video_fps * frameIdx);
+            tracker->Process(frame, detections, cur_timestamp);
 
             // Drawing colored "worms" (tracks).
             frame = tracker->DrawActiveTracks(frame);
@@ -316,17 +314,17 @@ int main(int argc, char** argv) {
                                    cv::Scalar(0, 0, 255),
                                    2);
             }
-            //presenter.drawGraphs(frame);
+            presenter.drawGraphs(frame);
             metrics.update(startTime, frame, {10, 22}, cv::FONT_HERSHEY_COMPLEX, 0.65);
 
-            //videoWriter.write(frame);
-            //if (should_show) {
-            //    cv::imshow("dbg", frame);
-            //    char k = cv::waitKey(delay);
-            //    if (k == 27)
-            //        break;
-            //    presenter.handleKey(k);
-            //}
+            streamer.publish("/stream", outFrame); 
+            if (should_show) {
+                cv::imshow("dbg", frame);
+                char k = cv::waitKey(delay);
+                if (k == 27)
+                    break;
+                presenter.handleKey(k);
+            }
 
             if (should_save_det_log && (frameIdx % 100 == 0)) {
                 DetectionLog log = tracker->GetDetectionLog(true);
@@ -354,7 +352,7 @@ int main(int argc, char** argv) {
 
         slog::info << "Metrics report:" << slog::endl;
         metrics.logTotal();
-        //slog::info << presenter.reportMeans() << slog::endl;
+        slog::info << presenter.reportMeans() << slog::endl;
     } catch (const std::exception& error) {
         slog::err << error.what() << slog::endl;
         return 1;
