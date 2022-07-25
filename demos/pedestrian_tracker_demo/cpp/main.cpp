@@ -66,7 +66,6 @@ ncam::BufferedChannel<Mat>           jpegEncodeChan(JPEG_ENCODING_CHANNEL_SIZE);
 ncam::BufferedChannel<Mat>           infChan(INFERENCE_CHANNEL_SIZE);
 //ncam::BufferedChannel<vector<Rect>>  infResChan(INFERENCE_RESULT_CHANNEL_SIZE);
 
-
 using ImageWithFrameIndex = std::pair<cv::Mat, int>;
 
 std::unique_ptr<PedestrianTracker> CreatePedestrianTracker(const std::string& reid_model,
@@ -206,12 +205,13 @@ int main(int argc, char** argv) {
         std::unique_ptr<PedestrianTracker> tracker =
             CreatePedestrianTracker(reid_model, core, reid_mode, should_keep_tracking_info);
 
-        std::unique_ptr<ImagesCapture> cap =
-            openImagesCapture(FLAGS_i,
-                              FLAGS_loop,
-                              FLAGS_nireq == 1 ? read_type::efficient : read_type::safe,
-                              FLAGS_first,
-                              FLAGS_read_limit);
+        //std::unique_ptr<ImagesCapture> cap =
+        //    openImagesCapture(FLAGS_i,
+        //                      FLAGS_loop,
+        //                      FLAGS_nireq == 1 ? read_type::efficient : read_type::safe,
+        //                      FLAGS_first,
+        //                      FLAGS_read_limit);
+
         //double video_fps = cam.fps();
         //if (0.0 == video_fps) {
             // the default frame rate for DukeMTMC dataset
