@@ -54,17 +54,8 @@
 using cv::Mat;
 using std::vector;
 
-#define INFERENCE_CHANNEL_SIZE 3
-#define JPEG_ENCODING_CHANNEL_SIZE 3
 #define MAX_FRAME_BUFFERS 5
-
-// The local port for the MJPEG server.
 #define MJPEG_PORT 8080
-
-ncam::BufferedChannel<Mat>           jpegEncodeChan(JPEG_ENCODING_CHANNEL_SIZE);
-//ncam::BufferedChannel<vector<uchar>> videoChan(VIDEO_CHANNEL_SIZE);
-ncam::BufferedChannel<Mat>           infChan(INFERENCE_CHANNEL_SIZE);
-//ncam::BufferedChannel<vector<Rect>>  infResChan(INFERENCE_RESULT_CHANNEL_SIZE);
 
 using ImageWithFrameIndex = std::pair<cv::Mat, int>;
 
