@@ -229,8 +229,11 @@ int main(int argc, char** argv) {
         }
 
         auto startTime = std::chrono::steady_clock::now();
-        cv::Mat frame = cam.read();
+        cv::Mat frame;
         cv::Size firstFrameSize = frame.size();
+        if (!cam.read(frame)) {
+            return 1;
+        }
 
         /*
         LazyVideoWriter videoWriter{FLAGS_o, cam.fps(), FLAGS_limit};
@@ -339,7 +342,10 @@ int main(int argc, char** argv) {
                 SaveDetectionLogToTrajFile(detlog_out, log);
             }
             startTime = std::chrono::steady_clock::now();
-            frame = cam.read();
+            cv::Mat frame;
+            if (!cam.read(frame)) {
+                return 1;
+            }
             if (!frame.data)
                 break;
             if (frame.size() != firstFrameSize)
