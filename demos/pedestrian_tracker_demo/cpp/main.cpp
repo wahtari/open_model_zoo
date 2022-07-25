@@ -48,7 +48,6 @@
 #include "utils.hpp"
 
 #include <ncam/MJPEGStreamer.hpp>
-//#include <ncam/BufferedChannel.hpp>
 #include <ncam/Camera.hpp>
 
 using cv::Mat;
@@ -215,7 +214,6 @@ int main(int argc, char** argv) {
         }
         cv::Size firstFrameSize = frame.size();
         
-        //LazyVideoWriter videoWriter{FLAGS_o, cam.fps(), FLAGS_limit};
         cv::Size graphSize{static_cast<int>(frame.cols / 4), 60};
         Presenter presenter(FLAGS_u, 10, graphSize);
 
