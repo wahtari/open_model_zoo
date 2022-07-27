@@ -10,3 +10,4 @@ RUN mkdir /models && cd /models && \
 COPY pedestrian_tracker_demo /demo
 
 CMD ["/demo", "-no-show", "-i", "alvium", "-at", "ssd", "-m_det", "/models/person-detection-retail-0002.xml", "-m_reid", "/models/person-reidentification-retail-0277.xml"]
+CMD ["/demo", "-no-show", "-d_det", "MULTI:MYRIAD(4),MYRIAD(4)", "-d_reid", "MYRIAD", "-i", "alvium", "-at", "ssd", "-m_det", "/models/person-detection-retail-0002.xml", "-m_reid", "/models/person-reidentification-retail-0277.xml"]
