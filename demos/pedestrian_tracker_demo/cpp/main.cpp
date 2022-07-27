@@ -318,7 +318,6 @@ int main(int argc, char** argv) {
                 SaveDetectionLogToTrajFile(detlog_out, log);
             }
             startTime = std::chrono::steady_clock::now();
-            cv::Mat frame;
             if (!cam.read(frame)) {
                 return 1;
             }
