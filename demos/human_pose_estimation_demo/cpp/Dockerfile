@@ -6,4 +6,4 @@ RUN mkdir /models && cd /models && \
 
 COPY human_pose_estimation_demo /demo
 
-CMD ["/demo", "-no-show", "-at", "openpose", "-i", "/models/human-pose-estimation-0001.bin", "-m", "/models/human-pose-estimation-0001.xml"]
+CMD ["/demo", "-no-show", "-d", "MULTI:MYRIAD(4),MYRIAD(4),MYRIAD(4)", "-nthreads", "4", "-nstreams", "4", "-at", "openpose", "-i", "/models/human-pose-estimation-0001.bin", "-m", "/models/human-pose-estimation-0001.xml"]
