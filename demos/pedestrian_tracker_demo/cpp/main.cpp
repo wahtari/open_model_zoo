@@ -6,8 +6,8 @@
 #include <stdint.h>
 
 #include <algorithm>
-#include <chrono>
 #include <cmath>
+#include <chrono>
 #include <exception>
 #include <map>
 #include <memory>
@@ -46,6 +46,15 @@
 #include "pedestrian_tracker_demo.hpp"
 #include "tracker.hpp"
 #include "utils.hpp"
+
+#include <ncam/MJPEGStreamer.hpp>
+#include <ncam/Camera.hpp>
+
+using cv::Mat;
+using std::vector;
+
+#define MAX_FRAME_BUFFERS 5
+#define MJPEG_PORT 8080
 
 using ImageWithFrameIndex = std::pair<cv::Mat, int>;
 
@@ -186,25 +195,32 @@ int main(int argc, char** argv) {
         std::unique_ptr<PedestrianTracker> tracker =
             CreatePedestrianTracker(reid_model, core, reid_mode, should_keep_tracking_info);
 
-        std::unique_ptr<ImagesCapture> cap =
-            openImagesCapture(FLAGS_i,
-                              FLAGS_loop,
-                              FLAGS_nireq == 1 ? read_type::efficient : read_type::safe,
-                              FLAGS_first,
-                              FLAGS_read_limit);
-        double video_fps = cap->fps();
-        if (0.0 == video_fps) {
-            // the default frame rate for DukeMTMC dataset
-            video_fps = 60.0;
+        double video_fps = 60; 
+
+        // Create camera.
+        ncam::Camera cam = ncam::Camera();
+        cam.printSystemVersion();
+
+        // Start the camera.
+        bool ok = cam.start(MAX_FRAME_BUFFERS);
+        if (!ok) {
+            return 1;
         }
 
         auto startTime = std::chrono::steady_clock::now();
-        cv::Mat frame = cap->read();
+        cv::Mat frame;
+        if (!cam.read(frame)) {
+            return 1;
+        }
         cv::Size firstFrameSize = frame.size();
-
-        LazyVideoWriter videoWriter{FLAGS_o, cap->fps(), FLAGS_limit};
+        
         cv::Size graphSize{static_cast<int>(frame.cols / 4), 60};
         Presenter presenter(FLAGS_u, 10, graphSize);
+
+        // Our motion jpeg server.
+        ncam::MJPEGStreamer streamer;
+        streamer.start(MJPEG_PORT, 1);
+        std::cout << "MJPEG server listening on port " << std::to_string(MJPEG_PORT) << std::endl;
 
         for (unsigned frameIdx = 0;; ++frameIdx) {
             detectionModel->preprocess(ImageInputData(frame), req);
@@ -288,7 +304,7 @@ int main(int argc, char** argv) {
             presenter.drawGraphs(frame);
             metrics.update(startTime, frame, {10, 22}, cv::FONT_HERSHEY_COMPLEX, 0.65);
 
-            videoWriter.write(frame);
+            streamer.publish("/stream", frame); 
             if (should_show) {
                 cv::imshow("dbg", frame);
                 char k = cv::waitKey(delay);
@@ -302,7 +318,9 @@ int main(int argc, char** argv) {
                 SaveDetectionLogToTrajFile(detlog_out, log);
             }
             startTime = std::chrono::steady_clock::now();
-            frame = cap->read();
+            if (!cam.read(frame)) {
+                return 1;
+            }
             if (!frame.data)
                 break;
             if (frame.size() != firstFrameSize)
